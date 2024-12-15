@@ -1,0 +1,87 @@
+#main-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  height: 100%;
+}
+
+.col-min-width {
+  min-width: 350px;
+}
+
+.card-bg {
+  background: #f1f2f4;
+}
+
+.card {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.custom-card {
+  overflow: auto;
+  max-height: 420px;
+  background: #f1f2f4;
+  scrollbar-width: thin;
+}
+
+h5 {
+  padding: 10px 0px;
+}
+
+.p-board-title {
+  padding: 8px 16px;
+}
+
+textarea {
+  resize: none;
+  height: 162px;
+  scrollbar-width: thin;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.card-text {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.header-bg {
+  background: hsl(215, 90%, 37.7%);
+}
+
+.badge {
+
+  padding: 5px 10px;
+  font-size: 0.8rem;
+}
+
+.task {
+  background: #f1f2f4;
+  margin: 9px;
+  height: 400px;
+  overflow: auto;
+}
+
+/* Stile per il contenitore con overflow */
+.d-flex.overflow-auto {
+  scrollbar-width: thin;
+  /* Per browser compatibili */
+}
+
+.d-flex.overflow-auto::-webkit-scrollbar {
+  height: 8px;
+  /* Altezza dello scrollbar */
+}
+
+.d-flex.overflow-auto::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  /* Colore dello scrollbar */
+
+}
+
+.d-flex.overflow-auto::-webkit-scrollbar-thumb:hover {
+  background-color: #888;
+}
