@@ -1,10 +1,10 @@
+
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
+const { initializeDatabase, getDb } = require('./db');
 const bodyParser = require('body-parser');
 const app = express();
 const cors = require('cors');
 const port = 3000;
-
 
 app.use(bodyParser.json());
 app.use(cors({
@@ -12,86 +12,11 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type'],
 }));
-let db
-//DB
-const initializeDatabase = () => {
-  return new Promise((resolve, reject) => {
-     db = new sqlite3.Database(':memory:', (err) => {
-      if (err) {
-        return reject('Errore nella creazione del database: ' + err.message);
-      }
-      console.log('Connessione al database in-memory avvenuta con successo.');
-
-      // Creazione della tabella boards
-      db.run(
-        `CREATE TABLE IF NOT EXISTS boards (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          name TEXT NOT NULL
-        )`,
-        (err) => {
-          if (err) {
-            return reject('Errore nella creazione della tabella boards: ' + err.message);
-          }
-
-          console.log('Tabella boards creata con successo.');
-
-          const boards = ['TODO', 'IN PROGRESS', 'PENDING REVIEW', 'REJECTED', 'COMPLETED'];
-          const stmt = db.prepare('INSERT INTO boards (name) VALUES (?)');
-          boards.forEach((board) => stmt.run(board));
-          stmt.finalize();
-
-          // Creazione della tabella tasks
-          db.run(
-            `CREATE TABLE IF NOT EXISTS tasks (
-              id INTEGER PRIMARY KEY AUTOINCREMENT,
-              title TEXT NOT NULL,
-              description TEXT,
-              boardId INTEGER NOT NULL,
-              dueDate TEXT,
-              FOREIGN KEY (boardId) REFERENCES boards (id)
-            )`,
-            (err) => {
-              if (err) {
-                return reject('Errore nella creazione della tabella tasks: ' + err.message);
-              }
-
-              console.log('Tabella tasks creata con successo.');
-
-              const dueDate = new Date().toISOString();
-
-              const insertTask = db.prepare('INSERT INTO tasks (title, description, boardId, dueDate) VALUES (?, ?, ?, ?)');
-
-              // Inserimento di task di esempio
-              insertTask.run('Task 1', 'Descrizione del Task 1', 1, dueDate, (err) => {
-                if (err) {
-                  console.error('Errore nell\'inserimento del Task 1:', err.message);
-                  reject(err);
-                } else {
-                  console.log('Task 1 inserito con successo.');
-                }
-              });
-
-              insertTask.run('Task 2', 'Descrizione del Task 2', 2, dueDate, (err) => {
-                if (err) {
-                  console.error('Errore nell\'inserimento del Task 2:', err.message);
-                  reject(err);
-                } else {
-                  console.log('Task 2 inserito con successo.');
-                  resolve(db); // Risolvi la Promise quando tutto è stato creato e inserito
-                }
-              });
-            }
-          );
-        }
-      );
-    });
-  });
-};
-
 
 // API 
 // Recupera tutte le board con i task associati
 app.get('/boards', (req, res) => {
+  const db = getDb();
   const query = `
     SELECT 
       boards.id AS boardId, 
@@ -104,6 +29,7 @@ app.get('/boards', (req, res) => {
     FROM boards
     LEFT JOIN tasks ON boards.id = tasks.boardId
   `;
+
 
   db.all(query, [], (err, rows) => {
     if (err) {
@@ -149,6 +75,7 @@ app.get('/boards', (req, res) => {
 });
 
 app.post('/tasks', (req, res) => {
+  const db = getDb();
   const { title, description } = req.body;
 
   const boardId = 1; // Assumendo che la boardId sia fissa per ora
@@ -173,6 +100,7 @@ app.post('/tasks', (req, res) => {
 
 
 app.put('/tasks', (req, res) => {
+  const db = getDb();
   const { title, description, id} = req.body;
 
 
@@ -195,6 +123,7 @@ app.put('/tasks', (req, res) => {
 
 
 app.delete('/tasks/:id', (req, res) => {
+  const db = getDb();
   const taskId = req.params.id;
 
   const deleteTask = db.prepare('DELETE FROM tasks WHERE id = ?');
@@ -207,6 +136,7 @@ app.delete('/tasks/:id', (req, res) => {
 });
 
 app.put('/tasks/:id/move', (req, res) => {
+  const db = getDb();
   const { id } = req.params;
   const { boardId } = req.body;
 
@@ -227,12 +157,6 @@ app.put('/tasks/:id/move', (req, res) => {
 
 
 // start
-
-/* module.exports = app.listen(port, () => {
-  console.log(`Server avviato su http://localhost:${port}`);
-});
- */
-// Funzione per avviare il server
 const startServer = () => {
   if (require.main === module) 
   app.listen(port, () => {
@@ -255,4 +179,4 @@ if (require.main === module) {
   initializeApp();
 }
 
-module.exports = { app, initializeDatabase, sqlite3  };
+module.exports = { app };
